@@ -1,17 +1,16 @@
-#include <SPIFFS.h>
-
-// Bad Apple for ESP32 with OLED SSD1306 | 2018 by Hackerspace-FFM.de |
-// MIT-License.
 #include "FS.h"
 #include "SSD1306.h"
 #include "heatshrink_decoder.h"
+#include "sd_card.h"
+#include <SPIFFS.h>
 
-// Hints:
-// * Adjust the display pins below
-// * After uploading to ESP32, also do "ESP32 Sketch Data Upload" from Arduino
+SSD1306 display(0x3c, 21, 22);
+SDCard sdCard;
 
-SSD1306 display(0x3c, 21, 22); // For Heltec
-// SSD1306 display (0x3c, 5, 4);
+#define SD_CS 5
+#define SD_MOSI 23
+#define SD_MISO 19
+#define SD_SCK 18
 
 #if HEATSHRINK_DYNAMIC_ALLOC
 #error HEATSHRINK_DYNAMIC_ALLOC must be false for static allocation test suite.
@@ -221,7 +220,21 @@ void readFile(fs::FS &fs, const char *path) {
 
 void setup() {
   Serial.begin(115200);
-  // Reset for some displays
+  delay(100);
+
+  Serial.println("\n\n=== ESP32 BadApple Starting ===");
+  Serial.println("Initializing hardware...");
+
+  delay(500);
+
+  // Initialize SD card
+  if (sdCard.begin(SD_CS, SD_MOSI, SD_MISO, SD_SCK)) {
+    Serial.println("[MAIN] ✓ SD card initialized");
+    sdCard.listFiles("/");
+  } else {
+    Serial.println("[MAIN] ✗ SD card initialization failed");
+  }
+
   pinMode(16, OUTPUT);
   digitalWrite(16, LOW);
   delay(50);
@@ -249,16 +262,12 @@ void setup() {
   Serial.print("usedBytes(): ");
   Serial.println(SPIFFS.usedBytes());
   listDir(SPIFFS, "/", 0);
-  readFile(SPIFFS, "/video.hs");
 
-  // Serial.print("Format SPIFSS? (enter y for yes): ");
-  //  while(!Serial.available()) ;
-  // if(Serial.read() == 'y') {
-  //   bool ret = SPIFFS.format();
-  //   if(ret) Serial.println("Success. "); else Serial.println("FAILED! ");
-  // } else {
-  //   Serial.println("Aborted.");
-  // }
+  Serial.println("\n[MAIN] Starting video playback...");
+  readFile(SPIFFS, "/video.hs");
 }
 
-void loop() {}
+void loop() {
+  // Main loop - video playback handled in readFile()
+  delay(1000);
+}
