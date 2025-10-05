@@ -1,11 +1,9 @@
 #include "FS.h"
 #include "SSD1306.h"
 #include "heatshrink_decoder.h"
-#include "sd_card.h"
 #include <SPIFFS.h>
 
 SSD1306 display(0x3c, 21, 22);
-SDCard sdCard;
 
 #define SD_CS 5
 #define SD_MOSI 23
@@ -226,14 +224,6 @@ void setup() {
   Serial.println("Initializing hardware...");
 
   delay(500);
-
-  // Initialize SD card
-  if (sdCard.begin(SD_CS, SD_MOSI, SD_MISO, SD_SCK)) {
-    Serial.println("[MAIN] ✓ SD card initialized");
-    sdCard.listFiles("/");
-  } else {
-    Serial.println("[MAIN] ✗ SD card initialization failed");
-  }
 
   pinMode(16, OUTPUT);
   digitalWrite(16, LOW);
